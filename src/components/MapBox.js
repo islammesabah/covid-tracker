@@ -1,20 +1,20 @@
 import * as React from 'react';
-import { useState } from 'react';
+import { useState,useEffect } from 'react';
 import ReactMapGL,{Marker} from 'react-map-gl';
+import 'mapbox-gl/dist/mapbox-gl.css';
 import {Room} from '@material-ui/icons'
 import FiberManualRecordRoundedIcon from '@material-ui/icons/FiberManualRecordRounded';
-import useGeoLocation from '../hooks/useGeoLocation.js'
 
-function Map() {
+function Map(location) {
+  location = location.location
+  const [data,setData] = useState([])
   const [viewport, setViewport] = useState({
     width: '100vw',
-    height: '100vh',
-    latitude: 30.0444,
-    longitude: 31.2357,
+    height: '90vh',
+    latitude: location.coords.latitude,
+    longitude: location.coords.longitude,
     zoom: 6
   });
-
-  const location = useGeoLocation();
 
   return (
     <ReactMapGL
@@ -24,13 +24,16 @@ function Map() {
       mapStyle="mapbox://styles/islam123/ckrsw83nlhfsy17nybvdrs0k6"
     >
       {location.loaded &&
-        <Marker latitude={location.coords.latitude} longitude={location.coords.longitude} offsetLeft={-20} offsetTop={-10}>
+        <Marker latitude={location.coords.latitude} longitude={location.coords.longitude} offsetLeft={-viewport.zoom * 3.5} offsetTop={-viewport.zoom * 7}>
             <Room style={{fontSize:viewport.zoom * 7, color: 'slateblue'}}/>
         </Marker>
       }
-        <Marker latitude={0} longitude={0} offsetLeft={-20} offsetTop={-10}>
-            <FiberManualRecordRoundedIcon style={{fontSize:viewport.zoom * 3, color: 'red'}}/>
+      {data.map(userLocation=>{
+        console.log(userLocation);
+        <Marker latitude={0} longitude={0} offsetLeft={-10} offsetTop={-10}>
+          <FiberManualRecordRoundedIcon style={{fontSize:viewport.zoom * 3, color: 'red'}}/>
         </Marker>
+      })}
     </ReactMapGL>
   );
 }
