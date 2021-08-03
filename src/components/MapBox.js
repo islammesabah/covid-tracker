@@ -10,9 +10,9 @@ function MapBox(location) {
   const [data,setData] = useState([])
   const [viewport, setViewport] = useState({
     width: '100vw',
-    height: '90vh',
-    latitude: location.coords.latitude,
-    longitude: location.coords.longitude,
+    height: '85vh',
+    latitude: /*location.coords.latitude*/30,
+    longitude: /*location.coords.longitude*/30,
     zoom: 6
   });
 
@@ -23,11 +23,11 @@ function MapBox(location) {
       onViewportChange={nextViewport => setViewport(nextViewport)}
       mapStyle="mapbox://styles/islam123/ckrsw83nlhfsy17nybvdrs0k6"
     >
-      {location.loaded &&
+      {/* {location.loaded &&
         <Marker latitude={location.coords.latitude} longitude={location.coords.longitude} offsetLeft={-viewport.zoom * 3.5} offsetTop={-viewport.zoom * 7}>
             <Room style={{fontSize:viewport.zoom * 7, color: 'slateblue'}}/>
         </Marker>
-      }
+      } */}
       {/* {data.map(userLocation=>{
         console.log(userLocation);
         <Marker latitude={0} longitude={0} offsetLeft={-10} offsetTop={-10}>
