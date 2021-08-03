@@ -5,7 +5,7 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 import {Room} from '@material-ui/icons'
 import FiberManualRecordRoundedIcon from '@material-ui/icons/FiberManualRecordRounded';
 
-function Map(location) {
+function MapBox(location) {
   location = location.location
   const [data,setData] = useState([])
   const [viewport, setViewport] = useState({

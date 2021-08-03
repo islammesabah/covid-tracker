@@ -48,7 +48,7 @@ const useStyles = makeStyles((theme) => ({
  
 }));
 
-export default function SignInSide() {
+export default function SignIn() {
   const classes = useStyles();
 
   return (
@@ -56,7 +56,7 @@ export default function SignInSide() {
       <CssBaseline />
       <Grid item xs={12} sm={8} md={12} component={Paper} elevation={6} square>
         <div className={classes.paper}>
-          <Avatar className={classes.avatar} >
+          <Avatar className={classes.avatar}>
             <LockOutlinedIcon />
           </Avatar>
           <Typography component="h1" variant="h5">
@@ -94,9 +94,13 @@ export default function SignInSide() {
             >
               Sign In
             </Button>
-            <Link href="#" variant="body2">
-              {"Don't have an account? Sign Up"}
-            </Link>
+            <Grid container justifyContent="flex-end">
+              <Grid item>
+                <Link href="#" variant="body2">
+                  {"Don't have an account? Sign Up"}
+                </Link>
+              </Grid>
+            </Grid>
             <Box mt={5}>
               <Copyright />
             </Box>

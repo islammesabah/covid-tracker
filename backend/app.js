@@ -1,6 +1,7 @@
 const express = require("express");
 const cors = require('cors'); 
 var admin = require("firebase-admin");
+const bcrypt = require("bcrypt");
 
 require('dotenv').config();
 
@@ -21,33 +22,53 @@ const database = admin.database();
 const userRef = database.ref('/users');
 const locationRef = database.ref('/locations');
 
-// create user
-app.post('/user',(req,res) =>{
-    const user_id = userRef.push().key;
-    userRef.child(user_id).set({
-        email: req.body.email,
-        first_name: req.body.first_name,
-        last_name: req.body.last_name,
-        gender: req.body.gender,
-        age: req.body.age,
-        phone_number: req.body.phone_number,
-        password: req.body.password
-    }).then(res.json("User Created"))
-    .catch(err => res.status(400).json('Error: '+err));
+// register user
+app.post('/user', async (req, res) => {
+    try {
+      userRef
+        .orderByChild("email")
+        .equalTo(req.body.email)
+          .once("value", async (snapshot) => {
+            console.log(snapshot.val())
+          if (!snapshot.exists()) {
+            const user_id = userRef.push().key;
+            const salt = await bcrypt.genSalt(10);
+            const hashPassword = await bcrypt.hash(req.body.password, salt);
+            var data = req.body;
+              data["password"] = hashPassword;
+              data["ID"] = user_id;
+            userRef
+              .child(user_id)
+              .set(req.body)
+              .then(res.json(user_id))
+              .catch((err) => res.status(400).json("Error: " + err));
+          } else {
+              console.log("ssss")
+            res.status(400).json("This Email is already exist!");
+          }
+        });
+    } catch (err) {
+      res.status(500).json("The read failed: " + err.name);
+    }
 });
 
-//add health info
-app.post('/addhealthinfo',(req,res) =>{
-    console.log(req)
-    userRef.child(req.body.user_id).update({
-        temperature: req.body.temperature,
-        vaccened: req.body.vaccened,
-        vaccine_type: req.body.vaccine_type,
-        vaccine_date: req.body.vaccine_date,
-        pcr_result: req.body.pcr_result,
-        location_access: req.body.location_access
-    }).then(res.json("Info added"))
-    .catch(err => res.status(400).json('Error: '+err));
+// login
+app.get('/login', async (req,res) =>{
+    userRef.orderByChild('email').equalTo(req.body.email).once('value', async (snapshot) => {
+        var data = snapshot.val()
+        if (data != null) {
+            const validate = await bcrypt.compare(
+              req.body.password,
+              data[[Object.keys(data)[0]]].password
+            );
+            !validate && res.status(400).json("Wronge Email or Password");
+            res.status(200).json(Object.keys(data)[0]);
+        }else{
+            res.status(400).json('Wronge Email or Password');
+        }
+    }, (errorObject) => {
+        res.status(500).json('The read failed: ' + errorObject.name);
+      });
 });
 
 // set location
@@ -59,26 +80,12 @@ app.post('/setlocation',(req,res) =>{
     .catch(err => res.status(400).json('Error: '+err));;
 });
 
-// read user credentials
-app.get('/getcredentials',(req,res) =>{
-    userRef.orderByChild('email').equalTo(req.body.email).once('value', (snapshot) => {
-        data = snapshot.val()
-        if(data != null){
-            res.json({
-                password: data[[Object.keys(data)[0]]].password
-            })
-        }else{
-            res.status(400).json('Error: check your email!')
-        }
-    }, (errorObject) => {
-        res.status(400).json('The read failed: ' + errorObject.name);
-      });
-});
+
 
 // read users
 app.get('/getuser',(req,res) =>{
     userRef.child(req.body.user_id).once('value', (snapshot) => {
-        data = snapshot.val()
+        var data = snapshot.val()
         if(data != null){
             res.json(data)
         }else{

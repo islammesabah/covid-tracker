@@ -11,7 +11,7 @@ const styles = {
   },
 };
 
-class TemporaryDrawer extends React.Component {
+class RightDrawer extends React.Component {
   state = {
     right: false,
   };
@@ -49,8 +49,8 @@ class TemporaryDrawer extends React.Component {
   }
 }
 
-TemporaryDrawer.propTypes = {
+RightDrawer.propTypes = {
   classes: PropTypes.object.isRequired,
 };
 
-export default withStyles(styles)(TemporaryDrawer);
+export default withStyles(styles)(RightDrawer);
