@@ -28,14 +28,14 @@ function MapBox(location) {
             <Room style={{fontSize:viewport.zoom * 7, color: 'slateblue'}}/>
         </Marker>
       }
-      {data.map(userLocation=>{
+      {/* {data.map(userLocation=>{
         console.log(userLocation);
         <Marker latitude={0} longitude={0} offsetLeft={-10} offsetTop={-10}>
           <FiberManualRecordRoundedIcon style={{fontSize:viewport.zoom * 3, color: 'red'}}/>
         </Marker>
-      })}
+      })} */}
     </ReactMapGL>
   );
 }
 
-export default Map;
+export default MapBox;

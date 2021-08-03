@@ -33,15 +33,31 @@ export default function NavBar() {
     <div className={classes.root}>
       <AppBar position="static" className={classes.root}>
         <Toolbar color="green">
-            <img src= {process.env.PUBLIC_URL  + "/icon.png"} alt="Covid Tracker" className={classes.icon}/>
-            <Typography variant="h6" className={classes.title}>
-                Covid Tracker
-            </Typography>
-            <Button startIcon={<FilterIcon />} className={classes.button} variant="outlined" color="inherit">Filter</Button>
-            <Button className={classes.button} variant="outlined" color="inherit">Login</Button>
+          <img
+            src={process.env.PUBLIC_URL + "/icon.png"}
+            alt="Covid Tracker"
+            className={classes.icon}
+          />
+          <Typography variant="h6" className={classes.title}>
+            Covid Tracker
+          </Typography>
+          <Button
+            startIcon={<FilterIcon />}
+            className={classes.button}
+            variant="outlined"
+            color="inherit"
+          >
+            Filter
+          </Button>
+          <Button className={classes.button} variant="outlined" color="inherit">
+            Sign In
+          </Button>
+          <Button className={classes.button} variant="outlined" color="inherit">
+            Sign Up
+          </Button>
         </Toolbar>
       </AppBar>
-      <SignIn/>
+      <SignIn />
     </div>
   );
 }

@@ -7,7 +7,6 @@ import FilterMap from './components/FilterMap.js'
 import SignUp from './components/SignUp.js'
 
 function App() {
-  const myStorage = window.localStorage;
   const location = useGeoLocation();
   return (
     <div className="App">
@@ -16,7 +15,7 @@ function App() {
         <Map location={location}/>
       } */}
       {/* <SignIn/> */}
-      <SignUp />
+      <SignIn />
     </div>
   );
 }

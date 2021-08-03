@@ -53,7 +53,7 @@ app.post('/user', async (req, res) => {
 });
 
 // login
-app.get('/login', async (req,res) =>{
+app.post('/login', async (req,res) =>{
     userRef.orderByChild('email').equalTo(req.body.email).once('value', async (snapshot) => {
         var data = snapshot.val()
         if (data != null) {

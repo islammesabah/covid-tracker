@@ -19,7 +19,6 @@ import {
   MuiPickersUtilsProvider,
   KeyboardDatePicker,
 } from "@material-ui/pickers";
-import { Cast } from "@material-ui/icons";
 const axios = require("axios");
 
 const marks = [
@@ -79,8 +78,7 @@ export default function SignUp() {
       age: "",
       gender: "male",
       password: "",
-        confirmPasswordError: "",
-      
+      confirmPasswordError: "",
     });
     const handleChange = (event) => {
         setState({ ...state, [event.target.name]: event.target.value});
