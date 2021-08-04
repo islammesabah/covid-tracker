@@ -28,7 +28,6 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 const showNavButtons = () => {
-  console.log(window.location.pathname);
   if (window.location.pathname.startsWith("/signin"))  return 1;
   if (window.location.pathname.startsWith("/signup"))  return 2;
   return 0;

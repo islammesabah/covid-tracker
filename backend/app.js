@@ -48,7 +48,7 @@ app.post('/user', async (req, res) => {
           }
         });
     } catch (err) {
-      res.status(500).json("The read failed: " + err.name);
+      res.status(500).json("The post failed: " + err.name);
     }
 });
 
@@ -67,33 +67,55 @@ app.post('/login', async (req,res) =>{
             res.status(400).json('Wronge Email or Password');
         }
     }, (errorObject) => {
-        res.status(500).json('The read failed: ' + errorObject.name);
+        res.status(500).json('The post failed: ' + errorObject.name);
       });
 });
 
 // set location
-app.post('/setlocation',(req,res) =>{
-    locationRef.child(req.body.user_id).set({
-        longitude: req.body.longitude,
-        latitude: req.body.latitude
-    }).then(res.json("location set"))
-    .catch(err => res.status(400).json('Error: '+err));;
+app.post('/location', (req, res) => {
+    console.log(req.body)
+      userRef.child(req.body.ID).once("value", async (snapshot) => {
+        if (snapshot.exists()) {
+          console.log(snapshot.val());
+             locationRef
+               .child(req.body.ID)
+               .set({
+                 tempreature: snapshot.val().tempreature
+                   ? snapshot.val().tempreature
+                   : 37,
+                 pcr_result: snapshot.val().pcr_result
+                   ? snapshot.val().pcr_result
+                   : "Not Taken",
+                 longitude: req.body.longitude,
+                 latitude: req.body.latitude,
+               })
+               .then(res.status(200).json("done"))
+               .catch((err) => res.status(400).json("The post failed: " + err));
+        }
+      },
+        (errorObject) => {
+          res.status(500);
+        });
 });
 
 
 
 // read users
 app.get('/getuser',(req,res) =>{
-    userRef.child(req.body.user_id).once('value', (snapshot) => {
-        var data = snapshot.val()
-        if(data != null){
-            res.json(data)
-        }else{
-            res.status(400).json('Error: no user with this ID!')
+    userRef.child(req.body.user_id).once(
+      "value",
+      (snapshot) => {
+        var data = snapshot.val();
+        if (data != null) {
+          res.json(data);
+        } else {
+          res.status(400).json("Error: no user with this ID!");
         }
-    }, (errorObject) => {
-        res.status(400).json('The read failed: ' + errorObject.name);
-      });
+      },
+      (errorObject) => {
+        res.status(400).json("The read failed: " + errorObject.name);
+      }
+    );
 });
 
 // var longx = 500
