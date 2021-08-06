@@ -1,4 +1,4 @@
-import React from 'react';
+import React,{useState} from 'react';
 import Avatar from '@material-ui/core/Avatar';
 import Button from '@material-ui/core/Button';
 import CssBaseline from '@material-ui/core/CssBaseline';
@@ -10,6 +10,7 @@ import { makeStyles } from '@material-ui/core/styles';
 import { Container } from '@material-ui/core';
 const axios = require("axios");
 
+// css style of elements
 const useStyles = makeStyles((theme) => ({
   paper: {
     marginTop: theme.spacing(8),
@@ -37,42 +38,47 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 export default function SignIn() {
+  //use the style
   const classes = useStyles();
-  const [state, setState] = React.useState({
+
+  //set the states of the function
+  const [state, setState] = useState({
     email: "",
     password: "",
   });
+  const [error, SetError] = useState("");
+
+  // this arrow function to handel the change in the input fields
   const handleChange = (event) => {
     setState({ ...state, [event.target.name]: event.target.value });
   };
-  const [error, SetError] = React.useState("");
 
+  // handel the submit of data
   const submit = async (e) => {
-    e.preventDefault();
+    e.preventDefault();    // prevent reload of the page after submit
     SetError("");
+    // given data
     var data = {
       email: state.email,
       password: state.password,
     };
-    console.log(data);
     try {
-        console.log("Dff");
+        //send the data to signin
         await axios
           .post("/login", data)
           .then(function (response) {
-            console.log(response.data);
-            window.localStorage.setItem("ID", response.data);
+            window.localStorage.setItem("ID", response.data);  // set a global id to indicate the login status
+            window.location.href = "/"; // go to main page
           })
           .catch(function (error) {
-            console.log(error);
             SetError(error.response.data);
           });
-      console.log("Dff");
       } catch (error) {
-        console.error(error);
         SetError(error.message);
       }
   };
+
+  // render output
   return (
     <Container component="main" maxWidth="xs">
       <CssBaseline />

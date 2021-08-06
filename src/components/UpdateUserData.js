@@ -1,16 +1,23 @@
-import React, { useState } from "react";
-import Avatar from "@material-ui/core/Avatar";
+import React, { useEffect, useState } from "react";
 import Button from "@material-ui/core/Button";
 import CssBaseline from "@material-ui/core/CssBaseline";
 import TextField from "@material-ui/core/TextField";
 import FormControlLabel from "@material-ui/core/FormControlLabel";
 import Grid from "@material-ui/core/Grid";
-import LockOutlinedIcon from "@material-ui/icons/LockOutlined";
 import Typography from "@material-ui/core/Typography";
 import { makeStyles } from "@material-ui/core/styles";
 import Container from "@material-ui/core/Container";
 import Divider from "@material-ui/core/Divider";
-import { FormControl, RadioGroup, Radio, Slider, Switch, InputLabel, Select, MenuItem } from "@material-ui/core";
+import {
+  FormControl,
+  RadioGroup,
+  Radio,
+  Slider,
+  Switch,
+  InputLabel,
+  Select,
+  MenuItem,
+} from "@material-ui/core";
 import MuiPhoneNumber from "material-ui-phone-number";
 import "date-fns";
 import DateFnsUtils from "@date-io/date-fns";
@@ -59,9 +66,12 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-export default function SignUp() {
+export default function UpdateUserData() {
   //use the style
   const classes = useStyles();
+
+  // load the user_id from the localstore to check the signin status
+  const user_id = window.localStorage.getItem("ID");
 
   //set the states of the function
   const [state, setState] = useState({
@@ -80,14 +90,15 @@ export default function SignUp() {
   const [pcr_result, setPcrResult] = useState("");
   const [vacciene_type, setVaccieneType] = useState("");
   const [error, SetError] = useState("");
-  var temperature = 37;
+  const [temperature, SetTemperature] = useState("");
+
 
   // these arrow functions to handel the change in the input fields
   const handleChange = (event) => {
     setState({ ...state, [event.target.name]: event.target.value });
   };
   const setTemperature = (temp) => {
-    temperature = temp;
+    SetTemperature(temp);
   };
   const handleVaccieneTypeChange = (event) => {
     setVaccieneType(event.target.value);
@@ -102,18 +113,27 @@ export default function SignUp() {
     setLocation(event.target.checked);
   };
 
-  // this arrow function to check the confirmed password match the main one
-  const handleConfirmPasswordChange = (e) => {
-    var errorText = "";
-    if (e.target.value !== state.password) {
-      errorText = "Passwords are not matched";
+  useEffect(() => {
+    if (user_id !== null) {
+      axios.get("/user?ID=" + user_id).then((res) => {
+        setState({
+          first_name: res.data.first_name,
+          last_name: res.data.last_name,
+          email: res.data.email,
+          age: res.data.age,
+          gender: res.data.gender,
+          password: res.data.password,
+        });
+        setVacciene(res.data.vacciene);
+        setLocation(res.data.location);
+        setPhoneNumber(res.data.phone_number);
+        setVaccieneDate(res.data.vacciene_date);
+        setPcrResult(res.data.pcr_result);
+        setVacciene(res.data.vacciene_type);
+        SetTemperature(res.data.temperature);
+      });
     }
-    setState({
-      ...state,
-      confirmPassword: e.target.value,
-      confirmPasswordError: errorText,
-    });
-  };
+  }, [user_id]);
 
   // handel the submit of data
   const submit = async (e) => {
@@ -131,7 +151,6 @@ export default function SignUp() {
       age: state.age,
       gender: state.gender,
       phone_number: phone_number,
-      password: state.password,
       pcr_result: pcr_result,
     };
     if (vacciene) {
@@ -143,10 +162,9 @@ export default function SignUp() {
       try {
         //send the data to signup
         await axios
-          .post("/user", data)
+          .post("/updateuser", data)
           .then(function (response) {
-            window.localStorage.setItem("ID", response.data); // set a global id to indicate the login status
-            window.location.href = "/"; // go to main page
+            console.log(response)
           })
           .catch(function (error) {
             SetError(error.response.data);
@@ -164,11 +182,8 @@ export default function SignUp() {
     <Container component="main" maxWidth="xs">
       <CssBaseline />
       <div className={classes.paper}>
-        <Avatar className={classes.avatar} color="primary">
-          <LockOutlinedIcon />
-        </Avatar>
         <Typography component="h1" variant="h5">
-          Sign Up
+          Update Your Data
         </Typography>
         <form className={classes.form} onSubmit={submit}>
           <Grid container spacing={1}>
@@ -183,6 +198,7 @@ export default function SignUp() {
                 margin="normal"
                 required
                 id="first_name"
+                value={state.first_name}
                 label="First Name"
                 name="first_name"
                 onChange={handleChange}
@@ -198,6 +214,7 @@ export default function SignUp() {
                 id="last_name"
                 label="Last Name"
                 name="last_name"
+                value={state.last_name}
                 onChange={handleChange}
                 fullWidth
               />
@@ -209,6 +226,7 @@ export default function SignUp() {
                 required
                 fullWidth
                 id="email"
+                value={state.email}
                 label="Email Address"
                 name="email"
                 type="email"
@@ -216,39 +234,6 @@ export default function SignUp() {
                 autoComplete="email"
               />
             </Grid>
-            <Grid item xs={12}>
-              <TextField
-                variant="outlined"
-                margin="normal"
-                required
-                fullWidth
-                name="password"
-                label="Password"
-                type="password"
-                onChange={handleChange}
-                autoComplete="current-password"
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                variant="outlined"
-                margin="normal"
-                name="confirmPassword"
-                autoComplete="current-password"
-                required
-                fullWidth
-                label="Confirmed Password"
-                type="password"
-                onChange={handleConfirmPasswordChange}
-              />
-            </Grid>
-            {state.confirmPasswordError !== "" && (
-              <Grid item xs={12}>
-                <span className={classes.error}>
-                  * {state.confirmPasswordError}
-                </span>
-              </Grid>
-            )}
             <Grid item xs={12}>
               <FormControl component="fieldset">
                 <Grid container spacing={5} alignItems="center">
@@ -293,6 +278,7 @@ export default function SignUp() {
                 autoComplete="number"
                 required
                 fullWidth
+                value={state.age}
                 label="Age"
                 type="number"
                 onChange={handleChange}
@@ -309,11 +295,11 @@ export default function SignUp() {
                 name="phone_number"
                 variant="outlined"
                 label="Phone Number"
+                value={phone_number}
                 data-cy="user-phone"
                 onChange={setPhoneNumber}
                 defaultCountry={"us"}
                 fullWidth
-                value={phone_number}
               />
             </Grid>
             <Grid item xs={12}>
@@ -332,6 +318,7 @@ export default function SignUp() {
             <Grid item xs={12} sm={8}>
               <Slider
                 defaultValue={37}
+                value={temperature}
                 name="temperature"
                 getAriaValueText={setTemperature}
                 aria-labelledby="discrete-slider-always"
@@ -451,7 +438,7 @@ export default function SignUp() {
             color="primary"
             className={classes.submit}
           >
-            Sign Up
+            Update
           </Button>
         </form>
       </div>

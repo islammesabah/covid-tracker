@@ -1,9 +1,9 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
+import { createTheme, ThemeProvider } from '@material-ui/core/styles';
 import App from './App';
 
-import { createTheme, ThemeProvider } from '@material-ui/core/styles';
-
+// Build a green theme
 const theme = createTheme({
   palette: {
     primary: {
@@ -12,6 +12,7 @@ const theme = createTheme({
   },
 });
 
+// Main render
 ReactDOM.render(
   <React.StrictMode>
     <ThemeProvider theme={theme}>

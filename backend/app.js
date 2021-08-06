@@ -1,49 +1,59 @@
 const express = require("express");
 const cors = require('cors'); 
-var admin = require("firebase-admin");
+const admin = require("firebase-admin");
 const bcrypt = require("bcrypt");
+const axios = require("axios");
 
+// access .env file
 require('dotenv').config();
 
+//start express and set the uri port
 const app = express();
 const port = process.env.PORT || 5000;
 
+// use cors and set express response to json formate
 app.use(cors());
 app.use(express.json());
 
+// initialize firebase database
 var serviceAccount = require(process.env.servicePath);
-
 admin.initializeApp({
     credential: admin.credential.cert(serviceAccount),
     databaseURL: process.env.databaseURL
 });
-  
 const database = admin.database();
+
+// set database referance to access them easily
 const userRef = database.ref('/users');
 const locationRef = database.ref('/locations');
+const regionRef = database.ref('/region');
 
-// register user
+// post request to register user
 app.post('/user', async (req, res) => {
-    try {
+  try {
+      // check if the email already exist
       userRef
         .orderByChild("email")
         .equalTo(req.body.email)
           .once("value", async (snapshot) => {
-            console.log(snapshot.val())
-          if (!snapshot.exists()) {
-            const user_id = userRef.push().key;
-            const salt = await bcrypt.genSalt(10);
-            const hashPassword = await bcrypt.hash(req.body.password, salt);
-            var data = req.body;
+            if (!snapshot.exists()) {
+              // get new user id
+              const user_id = userRef.push().key;
+
+              // hash the password
+              const salt = await bcrypt.genSalt(10);
+              const hashPassword = await bcrypt.hash(req.body.password, salt);
+              var data = req.body;
               data["password"] = hashPassword;
               data["ID"] = user_id;
-            userRef
-              .child(user_id)
-              .set(req.body)
-              .then(res.json(user_id))
-              .catch((err) => res.status(400).json("Error: " + err));
-          } else {
-              console.log("ssss")
+
+              // save new user
+              userRef
+                .child(user_id)
+                .set(req.body)
+                .then(res.json(user_id))
+                .catch((err) => res.status(400).json("Error: " + err));
+            } else {
             res.status(400).json("This Email is already exist!");
           }
         });
@@ -52,16 +62,36 @@ app.post('/user', async (req, res) => {
     }
 });
 
-// login
-app.post('/login', async (req,res) =>{
+app.post("/updateuser", async (req, res) => {
+  try {
+          // save new user
+    var data = req.body;
+    data["ID"] = req.body.ID;
+          userRef
+            .child(req.body.ID)
+            .set(data)
+            .then(res.json("Done"))
+            .catch((err) => res.status(400).json("Error: " + err));
+    
+  } catch (err) {
+    res.status(500).json("The post failed: " + err.name);
+  }
+});
+
+// // post request to login
+app.post('/login', async (req, res) => {
+  // access the given email
     userRef.orderByChild('email').equalTo(req.body.email).once('value', async (snapshot) => {
-        var data = snapshot.val()
-        if (data != null) {
+      var data = snapshot.val()
+      // check if the email exist 
+      if (data != null) {
+          // validate the password
             const validate = await bcrypt.compare(
               req.body.password,
               data[[Object.keys(data)[0]]].password
             );
-            !validate && res.status(400).json("Wronge Email or Password");
+        !validate && res.status(400).json("Wronge Email or Password");
+        // return the user id
             res.status(200).json(Object.keys(data)[0]);
         }else{
             res.status(400).json('Wronge Email or Password');
@@ -71,12 +101,57 @@ app.post('/login', async (req,res) =>{
       });
 });
 
+app.post("/changepassword", async (req, res) => {
+    userRef
+      .equalTo(req.body.user_id)
+      .once(
+        "value",
+        async (snapshot) => {
+          var data = snapshot.val();
+          // check if the email exist
+          if (data != null) {
+            // validate the password
+            const validate = await bcrypt.compare(
+              req.body.current_password,
+              data[[Object.keys(data)[0]]].password
+            );
+            !validate && res.status(400).json("Wronge Email or Password");
+            // return the user id
+
+            // hash the password
+            const salt = await bcrypt.genSalt(10);
+            const hashPassword = await bcrypt.hash(req.body.new_password, salt);
+            data = data[[Object.keys(data)[0]]];;
+            data["password"] = hashPassword;
+            data["ID"] = req.body.ID;
+
+            userRef
+              .child(req.body.ID)
+              .set(data)
+              .then(res.json("Done"))
+              .catch((err) => res.status(400).json("Error: " + err));
+
+            res.status(200).json(Object.keys(data)[0]);
+          } else {
+            res.status(400).json("Wronge Email or Password");
+          }
+        },
+        (errorObject) => {
+          res.status(500).json("The post failed: " + errorObject.name);
+        }
+      );
+});
+
 // set location
 app.post('/location', (req, res) => {
-    console.log(req.body)
-      userRef.child(req.body.ID).once("value", async (snapshot) => {
-        if (snapshot.exists()) {
-          console.log(snapshot.val());
+  // get the user information to save the tempreature and pcr_result
+  // to be aple to filter the content when showing the map
+  // here we chose to save the data again on the dataset 
+  // instead of ask the server again for it in seperate request
+  userRef.child(req.body.ID).once("value", async (snapshot) => {
+    if (snapshot.exists()) {
+      console.log(req.body,req.body.latitude, req.body.longitude);
+      // save the data
              locationRef
                .child(req.body.ID)
                .set({
@@ -88,26 +163,51 @@ app.post('/location', (req, res) => {
                    : "Not Taken",
                  longitude: req.body.longitude,
                  latitude: req.body.latitude,
+                 region: req.body.region,
                })
                .then(res.status(200).json("done"))
                .catch((err) => res.status(400).json("The post failed: " + err));
-        }
+    }
       },
         (errorObject) => {
           res.status(500);
         });
 });
 
+app.post("/region", (req, res) => {
+   axios
+     .post(
+       "https://us1.locationiq.com/v1/reverse.php?key=pk.ea0af28dc37b3820253c8f09417fb92a&lat=" +
+         req.body.latitude +
+         "&lon=" +
+         req.body.longitude +
+         "&format=json&polygon_geojson=1"
+     )
+     .then(function (response) {
+       console.log(response);
+       if (response.data) {
+         regionRef
+           .child(response.data.address.state)
+           .set({
+             geojson: response.data.geojson,
+           })
+           .then(res.status(200).json(response.data.address.state))
+           .catch((err) => res.status(400).json("The post failed: " + err));
+       } else {
+         res.status(400).json("Can not find a state for this coordinates");
+       }
+     })
+     .catch((err) => res.status(400).json("The post failed: " + err));
+});
 
-
-// read users
-app.get('/getuser',(req,res) =>{
-    userRef.child(req.body.user_id).once(
+// read user
+app.get('/user', (req, res) => {
+    userRef.child(req.query.ID).once(
       "value",
       (snapshot) => {
         var data = snapshot.val();
         if (data != null) {
-          res.json(data);
+          res.status(200).json(data);
         } else {
           res.status(400).json("Error: no user with this ID!");
         }
@@ -118,22 +218,7 @@ app.get('/getuser',(req,res) =>{
     );
 });
 
-// var longx = 500
-// var longy = 500
-// var latx = 500
-// var laty = 500
-
-// const snapshot = locationRef.where('longitude', '>=', longx).where('longitude', '<=', longy)
-//             .where('latitude', '>=', latx).where('latitude', '<=', laty).get();
-// if (snapshot.empty) {
-//   console.log('No matching documents.');
-//   return;
-// }  
-
-// snapshot.forEach(doc => {
-//   console.log(doc.id, '=>', doc.data());
-// });
-
+// start the app
 app.listen(port,()=>{
     console.log(`App is listening to port ${port}`);
 });

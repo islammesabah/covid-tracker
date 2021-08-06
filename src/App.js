@@ -1,11 +1,11 @@
-import MapBox from "./components/MapBox.js";
-import Navbar from './components/Navbar.js';
-import SignIn from './components/SignIn.js';
-import SignUp from './components/SignUp.js';
 import { Box, Typography } from '@material-ui/core';
-import "./App.css";
 import { BrowserRouter as Router, Route } from "react-router-dom";
+import MapBox from "./components/MapBox";
+import Navbar from './components/Navbar';
+import SignIn from './components/SignIn';
+import SignUp from './components/SignUp';
 
+// Add copyright line at the bottom "Copyright © Islam Mesabah 2021"
 function Copyright() {
   return (
     <Typography variant="body2" color="textSecondary" align="center">
@@ -17,14 +17,15 @@ function Copyright() {
   );
 }
 
+// main app function
 function App() {
   return (
     <div>
-      <div className="Header">
+      <div>
           <Navbar />
       </div>
       <Router>
-        <div className="App">
+        <div>
           <Route
             exact
             path="/"
@@ -34,7 +35,7 @@ function App() {
           <Route exact path="/signup" render={(props) => <SignUp />} />
         </div>
       </Router>
-      <div className="Footer">
+      <div>
         <Box mt={1}>
           <Copyright />
         </Box>

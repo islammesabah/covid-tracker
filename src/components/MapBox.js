@@ -1,81 +1,81 @@
 import * as React from 'react';
-import { useState,useEffect } from 'react';
-import ReactMapGL,{Marker} from 'react-map-gl';
+import { useState, useEffect, useMemo } from "react";
 import 'mapbox-gl/dist/mapbox-gl.css';
+import ReactMapGL, { Marker, Source, Layer } from "react-map-gl";
 import { Room } from '@material-ui/icons'
 import FiberManualRecordRoundedIcon from '@material-ui/icons/FiberManualRecordRounded';
-// import useGeoLocation from "./../hooks/useGeoLocation.js";
-
-import firebase from "firebase";
-import { green } from '@material-ui/core/colors';
+import firebase from "firebase/app";
+import "firebase/database";
 const axios = require("axios");
 
+//firebae configuration 
 const config = {
   apiKey: "AIzaSyAg8JSSERH3O3hF2yGrlqlJHwA4aUxhgW0",
   authDomain: "covid-tracker-2530c.firebaseapp.com",
   databaseURL: "https://covid-tracker-2530c-default-rtdb.firebaseio.com"
 };
 
+// initiate the firebase app
 firebase.initializeApp(config);
 
+// access the firebase database to get realtime location of patients
 const databaseref = firebase.database();
 const locationRef = databaseref.ref("/locations");
+const regionRef = databaseref.ref("/region");
+
+// arrow function to get 
+const colorOfDots = (user) => {
+  if (user.pcr_result === "Positive") return "red";
+  if (user.tempreature > 39) return "magenta";
+  return "green";
+};
+
+
+const geojson = {
+  type: "FeatureCollection",
+  features: [
+    {
+      type: "Feature",
+      geometry: { type: "Point", coordinates: [-122.4, 37.8] },
+    },
+  ],
+};
+
+const layerStyle = {
+  id: "point",
+  type: "circle",
+  paint: {
+    "circle-radius": 50,
+    "circle-color": "#007cbf",
+  },
+};
 
 function MapBox() {
-  const distanceRef = 100;
-  const maxNum = 3;
+  const THRESHOULD_POINT = 1
+  // load the user_id from the localstore to check the signin status
   const user_id = window.localStorage.getItem("ID");
-  const [users, setUsers] = useState([])
 
-
-  const getDistance = (user1, user2) => {
-    const x1 = user1.longitude;
-    const y1 = user1.latitude;
-    const x2 = user2.longitude;
-    const y2 = user2.latitude;
-    const x_2 = x2-x1;
-    const y_2 = y2-y1;
-    return (Math.sqrt((x_2 * x_2) + (y_2 * y_2)));
-  }
-
-  const colorOfDots = (user) => {
-    console.log(user)
-    if (user.pcr_result === "Positive") return "red";
-    if (user.tempreature > 39) return "magenta";
-    return 'green';
-  }
-
+  //set the states of the function
+  const [users, setUsers] = useState({});
+  const [regions,] = useState({});
+  const [dataLoaded, setDataLoaded] = useState(false);
   const [userLocation, setUserLocation] = useState({
     longitude: 31.2357,
     latitude: 30.0444,
   });
   const [viewport, setViewport] = useState({
-    width: "100vw",
-    height: "85vh",
-    zoom: 6,
+    width: "100vw", // width of map window
+    height: "85vh", // height of map window
+    zoom: 6, // first zoom of map window
     longitude: userLocation.longitude,
     latitude: userLocation.latitude,
   });
 
-  const updateLocation = async (data) => {
-    data["ID"] = user_id;
-    console.log(data);
-    try {
-      await axios
-        .post("/location", data)
-        .then(function (response) {
-          console.log(response.data);
-        })
-        .catch(function (error) {
-          console.log(error);
-        });
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
+  // loaded after render the function or user_id change
   useEffect(() => {
-    if (("geolocation" in navigator)) {
+    // get the user location
+    if ("geolocation" in navigator) {
+      // at the start get the location to center the seen on the user
       navigator.geolocation.getCurrentPosition(
         (data) => {
           setViewport({
@@ -92,6 +92,7 @@ function MapBox() {
         },
         { enableHighAccuracy: true }
       );
+      // get the realtime location and update the database
       navigator.geolocation.watchPosition(
         (data) => {
           const loc = {
@@ -99,7 +100,35 @@ function MapBox() {
             latitude: data.coords.latitude,
           };
           setUserLocation(loc);
-          updateLocation(loc);
+          if (user_id !== null) {
+            if (user_id !== null) {
+              axios.get("/user?ID=" + user_id).then((res) => {
+                if (res.data.location) {
+                  loc["ID"] = user_id;
+                  try {
+                    axios
+                      .post("/region", loc)
+                      .then(function (response) {
+                        loc["region"] = response.data;
+                        axios
+                          .post("/location", loc)
+                          .then(function (response) {
+                            console.log(response.data);
+                          })
+                          .catch(function (error) {
+                            console.log(error);
+                          });
+                      })
+                      .catch(function (error) {
+                        console.log(error);
+                      });
+                  } catch (error) {
+                    console.error(error);
+                  }
+                }
+              });
+            }
+          }
           console.log(data);
         },
         (err) => {
@@ -108,23 +137,83 @@ function MapBox() {
         { enableHighAccuracy: true }
       );
     }
+    // call firebase realtime function to update the realtime location of other users
     locationRef.on("value", (snapshot) => {
       if (snapshot.exists()) {
         const data = snapshot.val();
         delete data[user_id];
+        console.log(data);
+        Object.keys(data).map((key) => { 
+            (data[key]["color"] = colorOfDots(data[key]))
+            if (data[key].place)
+              if (!regions[data[key].place])
+                regions[data[key].place] = {
+                  points: 1,
+                };
+            else regions[data[key].place] = {
+              points: regions[data[key].place].points+1,
+            };
+          }
+        );
+         Object.keys(regions).map((region) => {
+             if (!regions[region].points < THRESHOULD_POINT) delete regions[region];
+         });
+        regionRef.on("value", (snapshot) => {
+          if (snapshot.exists()) {
+            const data = snapshot.val();
+            Object.keys(data).map((region) => {
+              regions["geojson"] = data[region].geojson;
+            });
+            setDataLoaded(true);
+          }
+        });
+        console.log(regions);
         setUsers(data);
-        console.log(data)
+        console.log(data);
       }
     });
-  }, []);
+  }, [user_id]);
 
-  return (
-    <ReactMapGL
-      {...viewport}
-      mapboxApiAccessToken={process.env.REACT_APP_MAPBOX}
-      onViewportChange={(nextViewport) => setViewport(nextViewport)}
-      mapStyle="mapbox://styles/islam123/ckrsw83nlhfsy17nybvdrs0k6"
-    >
+  // render the marks if users changed
+  // const region = useMemo(
+  //   () =>
+  //     Object.keys(regions).map((key) => (
+  //       <Marker
+  //         key={key}
+  //         latitude={users[key].latitude}
+  //         longitude={users[key].longitude}
+  //         offsetLeft={-viewport.zoom * 1.5}
+  //         offsetTop={-viewport.zoom * 3}
+  //       >
+  //         <FiberManualRecordRoundedIcon
+  //           style={{ fontSize: viewport.zoom * 3, color: users[key].color }}
+  //         />
+  //       </Marker>
+  //     )),
+  //   [users]
+  // );
+  
+  const markers = useMemo(
+    () =>
+      Object.keys(users).map((key) => (
+        <Marker
+          key={key}
+          latitude={users[key].latitude}
+          longitude={users[key].longitude}
+          offsetLeft={-viewport.zoom * 1.5}
+          offsetTop={-viewport.zoom * 3}
+        >
+          <FiberManualRecordRoundedIcon
+            style={{ fontSize: viewport.zoom * 3, color: users[key].color }}
+          />
+        </Marker>
+      )),
+    [users]
+  );
+
+  // render the user location if it changed
+  const currentUserMarker = useMemo(
+    () => (
       <Marker
         latitude={userLocation.latitude}
         longitude={userLocation.longitude}
@@ -133,22 +222,23 @@ function MapBox() {
       >
         <Room style={{ fontSize: viewport.zoom * 7, color: "slateblue" }} />
       </Marker>
-      {Object.keys(users).map((key) => (
-        <Marker
-          key={key.toString()}
-          latitude={users[key].latitude}
-          longitude={users[key].longitude}
-          offsetLeft={-viewport.zoom * 1.5}
-          offsetTop={-viewport.zoom * 1.5}
-        >
-          <FiberManualRecordRoundedIcon
-            style={{
-              fontSize: viewport.zoom * 3,
-              color: colorOfDots(users[key]),
-            }}
-          />
-        </Marker>
-      ))}
+    ),
+    [userLocation]
+  );
+
+  // render output
+  return (
+    <ReactMapGL
+      {...viewport}
+      mapboxApiAccessToken={process.env.REACT_APP_MAPBOX}
+      onViewportChange={(nextViewport) => setViewport(nextViewport)}
+      mapStyle="mapbox://styles/islam123/ckrsw83nlhfsy17nybvdrs0k6"
+    >
+      <Source id="my-data" type="geojson" data={geojson}>
+        <Layer {...layerStyle} />
+      </Source>
+      {currentUserMarker}
+      {markers}
     </ReactMapGL>
   );
 }
