@@ -8,12 +8,12 @@ import FiberManualRecordRoundedIcon from "@material-ui/icons/FiberManualRecordRo
 import firebase from "firebase/app";
 import "firebase/database";
 import { makeStyles } from "@material-ui/core/styles";
-import mapboxgl from "mapbox-gl";
-import MapboxWorker from "mapbox-gl/dist/mapbox-gl-csp-worker";
+// import mapboxgl from "mapbox-gl";
+// import MapboxWorker from "mapbox-gl/dist/mapbox-gl-csp-worker";
 const axios = require("axios");
 
 // assign workerClass
-mapboxgl.workerClass = MapboxWorker;
+// mapboxgl.workerClass = MapboxWorker;
 
 //firebae configuration
 const config = {
