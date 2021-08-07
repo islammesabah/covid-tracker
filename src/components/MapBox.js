@@ -67,7 +67,7 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-const THRESHOULD_REGIONS = 1;
+const THRESHOULD_REGIONS = 3;
 const START_ZOOM = 10;
 function MapBox() {
   //use the style
@@ -107,10 +107,8 @@ function MapBox() {
             longitude: data.coords.longitude,
             latitude: data.coords.latitude,
           });
-          console.log(data);
         },
         (err) => {
-          console.log(err);
           setError(
             "We need to access your location to track your current location, \n your data will not be available online without your agreement"
           );
@@ -138,17 +136,13 @@ function MapBox() {
                         axios
                           .post("/location", loc)
                           .then(function (response) {
-                            console.log(response.data);
                           })
                           .catch(function (error) {
-                            console.log(error);
                           });
                       })
                       .catch(function (error) {
-                        console.log(error);
                       });
                   } catch (error) {
-                    console.error(error);
                     setError(
                       "We need to access your location to track your current location, \n your data will not be available online without your agreement"
                     );
@@ -157,13 +151,14 @@ function MapBox() {
               });
             }
           }
-          console.log(data);
         },
         (err) => {
-          console.log(err);
+          setError(
+            "We need to access your location to track your current location, \n your data will not be available online without your agreement"
+          );
         },
         { enableHighAccuracy: true }
-      );
+      )
     } else {
       setError(
         "We need to access your location to track your current location, your data will not be available online without your agreement"
@@ -175,48 +170,32 @@ function MapBox() {
         if (snapshot.exists()) {
           const data = snapshot.val();
           delete data[user_id];
-          console.log(data);
           var localRegions = {};
           Object.keys(data).map((key) => {
             data[key]["color"] = colorOfDots(data[key]);
             if (data[key].region) {
-              console.log(data[key].region);
               if (!localRegions[data[key].region]) {
-                console.log(localRegions[data[key].region], 1);
                 localRegions[data[key].region] = {
                   points: 1,
                 };
-                console.log(localRegions[data[key].region].points);
               } else {
-                console.log(localRegions[data[key].region], 1);
                 localRegions[data[key].region] = {
                   points: localRegions[data[key].region].points + 1,
                 };
-                console.log(localRegions.region.points);
               }
             }
-            console.log(localRegions);
-
             return null;
           });
-          console.log(localRegions);
           Object.keys(localRegions).map((region) => {
-            console.log(
-              localRegions[region],
-              parseInt(process.env.REACT_APP_THRESHOULD_POINT)
-            );
             if (localRegions[region].points < parseInt(THRESHOULD_REGIONS))
               delete localRegions[region];
             return null;
           });
-          console.log(localRegions);
           axios.get("/region").then((res) => {
             const data = res.data;
-            console.log(data, localRegions);
             const curData = {
               type: "FeatureCollection",
               features: Object.keys(localRegions).map((region) => {
-                console.log(region);
                 return {
                   type: "Feature",
                   geometry: {
@@ -260,7 +239,6 @@ function MapBox() {
 
   // render the user location if it changed
   const currentUserMarker = useMemo(() => {
-    console.log(viewport.zoom);
     return (
       <Marker
         latitude={userLocation.latitude}

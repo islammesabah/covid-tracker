@@ -120,17 +120,17 @@ export default function UpdateUserData() {
           first_name: res.data.first_name,
           last_name: res.data.last_name,
           email: res.data.email,
-          age: res.data.age,
+          age: parseInt(res.data.age),
           gender: res.data.gender,
           password: res.data.password,
         });
-        setVacciene(res.data.vacciene);
-        setLocation(res.data.location);
+        setVacciene(JSON.parse(res.data.vacciene));
+        setLocation(JSON.parse(res.data.location));
         setPhoneNumber(res.data.phone_number);
         setVaccieneDate(res.data.vacciene_date);
         setPcrResult(res.data.pcr_result);
-        setVacciene(res.data.vacciene_type);
-        SetTemperature(res.data.temperature);
+        setVaccieneType(res.data.vacciene_type);
+        SetTemperature(parseInt(res.data.temperature));
       });
     }
   }, [user_id]);
@@ -158,14 +158,12 @@ export default function UpdateUserData() {
       data["vacciene_type"] = vacciene_type;
       data["vacciene_date"] = vacciene_date;
     }
-
-    if (state.confirmPasswordError === "") {
       try {
         //send the data to signup
         await axios
           .post("/updateuser", data)
           .then(function (response) {
-            console.log(response)
+             window.location.href = "/";
           })
           .catch(function (error) {
             SetError(error.response.data);
@@ -173,9 +171,6 @@ export default function UpdateUserData() {
       } catch (error) {
         SetError(error.message);
       }
-    } else {
-      SetError("Passwords are not matched");
-    }
   };
 
   // render output

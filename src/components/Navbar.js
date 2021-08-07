@@ -4,14 +4,19 @@ import AppBar from '@material-ui/core/AppBar';
 import Toolbar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography';
 import Button from '@material-ui/core/Button';
+import { MenuItem } from '@material-ui/core';
+import Menu from "@material-ui/core/Menu";
+import Dialog from "@material-ui/core/Dialog";
+import UpdateUserData from "./UpdateUserData";
+import ChangePassword from "./ChangePassword";
 const axios = require("axios");
 
 // css style of elements
 const useStyles = makeStyles((theme) => ({
   root: {
-    flexGrow: 1,    
+    flexGrow: 1,
     backgroundColor: "#2B872B",
-    height: '5',
+    height: "5",
   },
   title: {
     flexGrow: 1,
@@ -26,6 +31,14 @@ const useStyles = makeStyles((theme) => ({
   button: {
     marginLeft: "10px",
     display: "flex",
+    cursor: "pointer",
+  },
+  typography: {
+    padding: theme.spacing(2),
+    fontSize: 16,
+    display: 'block',
+    width: "200px",
+    // margin:'auto'
   },
 }));
 
@@ -44,7 +57,29 @@ export default function NavBar() {
   const user_id = window.localStorage.getItem("ID");
 
   //set the states of the function
-  const [userName, setUserName] = useState("");
+  const [userName, setUserName] = useState(null);
+  const [update, setUpdate] = React.useState(false);
+  const [changePassword, setChangePassword] = React.useState(false);
+  const [openDialog, setOpenDialog] = React.useState(false);
+
+  // ancher of the main menu
+  const [anchorEl, setAnchorEl] = React.useState(null);
+  
+
+  // handle start and close of amin menu
+  const handleClick = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
+
+  const handleCloseDialog = () => {
+    setOpenDialog(false);
+    setUpdate(false);
+    setChangePassword(false);
+  };
 
   // load the first name to print it in navbar
   useEffect(() => {
@@ -84,34 +119,67 @@ export default function NavBar() {
                 Sign In
               </Button>
             )}
-          {(showNavButtons() === 1) &&
-            user_id === null && (
-              <Button
-                className={classes.button}
-                variant="outlined"
-                color="inherit"
-                onClick={(event) => (window.location.href = "/signup")}
-              >
-                Sign Up
-              </Button>
-            )}
-          {showNavButtons() === 0 && user_id !== null && (
+          {showNavButtons() === 1 && user_id === null && (
             <Button
               className={classes.button}
               variant="outlined"
               color="inherit"
-              onClick={(event) => {
-                window.localStorage.removeItem("ID");
-                window.location.href = "/";
-              }}
+              onClick={(event) => (window.location.href = "/signup")}
             >
-              Sign Out
+              Sign Up
             </Button>
           )}
-          {showNavButtons() === 0 && user_id !== null && (
-            <Typography className={classes.button}>HI, {userName}</Typography>
-            )}
+          {showNavButtons() === 0 && user_id && userName && (
+            <Typography className={classes.button} onClick={handleClick}>
+              HI, {userName}
+            </Typography>
+          )}
         </Toolbar>
+        <Menu
+          id="simple-menu"
+          anchorEl={anchorEl}
+          keepMounted
+          open={Boolean(anchorEl)}
+          onClose={handleClose}
+        >
+          <MenuItem
+            onClick={() => {
+              setUpdate(true);
+              handleClose();
+              setOpenDialog(true);
+            }}
+            color="primary"
+          >
+            Update your Data
+          </MenuItem>
+          <MenuItem
+            onClick={() => {
+              setChangePassword(true);
+              handleClose();
+              setOpenDialog(true);
+            }}
+            color="primary"
+          >
+            Change Password
+          </MenuItem>
+          <MenuItem
+            onClick={(event) => {
+              window.localStorage.removeItem("ID");
+              window.location.href = "/";
+            }}
+            color="primary"
+          >
+            Sign Out
+          </MenuItem>
+        </Menu>
+        <Dialog
+          onClose={handleCloseDialog}
+          aria-labelledby="customized-dialog-title"
+          open={openDialog}
+        >
+          {update && <UpdateUserData />}
+          {changePassword && <ChangePassword />}
+        </Dialog>
       </AppBar>
     </div>
   );

@@ -114,25 +114,23 @@ app.post("/changepassword", async (req, res) => {
             // validate the password
             const validate = await bcrypt.compare(
               req.body.current_password,
-              data[[Object.keys(data)[0]]].password
+              data.password
             );
-            !validate && res.status(400).json("Wronge Email or Password");
+            !validate && res.status(400).json("Wronge Password");
           
-            // hash the password
-            const salt = await bcrypt.genSalt(10);
-            const hashPassword = await bcrypt.hash(req.body.new_password, salt);
-            data = data[[Object.keys(data)[0]]];;
-            data["password"] = hashPassword;
-            data["ID"] = req.body.ID;
+            if (validate) {
+              // hash the password
+              const salt = await bcrypt.genSalt(10);
+              const hashPassword = await bcrypt.hash(req.body.new_password, salt);
+              data["password"] = hashPassword;
 
-            // update the data
-            userRef
-              .child(req.body.ID)
-              .set(data)
-              .then(res.json("Done"))
-              .catch((err) => res.status(400).json("Error: " + err));
-
-            res.status(200).json(Object.keys(data)[0]);
+              // update the data
+              userRef
+                .child(req.body.ID)
+                .set(data)
+                .then(res.json(data))
+                .catch((err) => res.status(400).json("Error: " + err));
+            }
           } else {
             res.status(400).json("Wronge Email or Password");
           }

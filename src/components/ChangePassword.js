@@ -77,20 +77,22 @@ export default function ChangePassword() {
       new_password: state.new_password,
       ID: user_id,
     };
-    try {
-      //send the data to signin
-      await axios
-        .post("/changepassword", data)
-        .then(function (response) {
-          window.localStorage.removeItem("ID"); // set a global id to indicate the login status
-          window.location.href = "/"; // go to main page
-        })
-        .catch(function (error) {
-          SetError(error.response.data);
-        });
-    } catch (error) {
-      SetError(error.message);
-    }
+      if (state.confirmPasswordError === "") {
+        try {
+          //send the data to signin
+          await axios
+            .post("/changepassword", data)
+            .then(function (response) {
+              window.localStorage.removeItem("ID"); // set a global id to indicate the login status
+              window.location.href = "/"; // go to main page
+            })
+            .catch(function (error) {
+              SetError(error.response.data);
+            });
+        } catch (error) {
+          SetError(error.message);
+        }
+      }
   };
 
   // render output
@@ -111,7 +113,7 @@ export default function ChangePassword() {
                 fullWidth
                 name="current_password"
                 label="current_password"
-                type="current_password"
+                type="password"
                 onChange={handleChange}
                 id="current_password"
                 autoComplete="current-password"
@@ -125,7 +127,7 @@ export default function ChangePassword() {
                 fullWidth
                 name="new_password"
                 label="new_password"
-                type="new_password"
+                type="password"
                 onChange={handleChange}
                 autoComplete="current-password"
               />
@@ -143,7 +145,7 @@ export default function ChangePassword() {
                 onChange={handleConfirmPasswordChange}
               />
             </Grid>
-            {state.confirmPasswordError !== "" && (
+            {state.confirmPasswordError && (
               <Grid item xs={12}>
                 <span className={classes.error}>
                   * {state.confirmPasswordError}
@@ -151,7 +153,7 @@ export default function ChangePassword() {
               </Grid>
             )}
           </Grid>
-          {error !== "" && (
+          {error && (
             <Typography className={classes.error} variant="caption">
               {" "}
               * {error}
