@@ -80,6 +80,7 @@ export default function NavBar() {
     setOpenDialog(false);
     setUpdate(false);
     setChangePassword(false);
+    setColorCode(false);
   };
 
   // load the first name to print it in navbar
