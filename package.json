@@ -4,7 +4,12 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "nodemon app.js"
+    "test": "nodemon app.js",
+    "build":"cd client && npm run build",
+    "install-client":"cd client && npm install",
+    "heroku-postbuild":"npm run install-client && npm run build",
+    "start": "node server.js",
+    "client":"cd client && npm start"
   },
   "author": "",
   "license": "ISC",
@@ -12,7 +17,6 @@
     "axios": "^0.21.1",
     "bcrypt": "^5.0.1",
     "cors": "^2.8.5",
-    "cryptr": "^6.0.2",
     "dotenv": "^10.0.0",
     "express": "^4.17.1",
     "firebase-admin": "^9.11.0"

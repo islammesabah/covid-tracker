@@ -239,6 +239,10 @@ server.get('/user', (req, res) => {
     );
 });
 
+if (process.env.NODE_ENV == 'production') {
+  app.use(express.static('client/build'))
+}
+
 // start the server
 server.listen(port,()=>{
     console.log(`Server is listening to port ${port}`);
