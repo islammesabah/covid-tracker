@@ -152,6 +152,7 @@ export default function UpdateUserData() {
       gender: state.gender,
       phone_number: phone_number,
       pcr_result: pcr_result,
+      ID: user_id,
     };
     if (vacciene) {
       data["vacciene_type"] = vacciene_type;

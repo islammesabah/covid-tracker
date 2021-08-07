@@ -62,9 +62,9 @@ app.post('/user', async (req, res) => {
     }
 });
 
+//update user data
 app.post("/updateuser", async (req, res) => {
   try {
-          // save new user
     var data = req.body;
     data["ID"] = req.body.ID;
           userRef
@@ -101,14 +101,15 @@ app.post('/login', async (req, res) => {
       });
 });
 
+//change current password
 app.post("/changepassword", async (req, res) => {
     userRef
-      .equalTo(req.body.user_id)
+      .child(req.body.ID)
       .once(
         "value",
         async (snapshot) => {
           var data = snapshot.val();
-          // check if the email exist
+          // get user data
           if (data != null) {
             // validate the password
             const validate = await bcrypt.compare(
@@ -116,8 +117,7 @@ app.post("/changepassword", async (req, res) => {
               data[[Object.keys(data)[0]]].password
             );
             !validate && res.status(400).json("Wronge Email or Password");
-            // return the user id
-
+          
             // hash the password
             const salt = await bcrypt.genSalt(10);
             const hashPassword = await bcrypt.hash(req.body.new_password, salt);
@@ -125,6 +125,7 @@ app.post("/changepassword", async (req, res) => {
             data["password"] = hashPassword;
             data["ID"] = req.body.ID;
 
+            // update the data
             userRef
               .child(req.body.ID)
               .set(data)
@@ -150,7 +151,6 @@ app.post('/location', (req, res) => {
   // instead of ask the server again for it in seperate request
   userRef.child(req.body.ID).once("value", async (snapshot) => {
     if (snapshot.exists()) {
-      console.log(req.body,req.body.latitude, req.body.longitude);
       // save the data
              locationRef
                .child(req.body.ID)
@@ -174,30 +174,53 @@ app.post('/location', (req, res) => {
         });
 });
 
+// add the regions
 app.post("/region", (req, res) => {
+  // get the regions from its cordinates using locationIq
    axios
      .post(
-       "https://us1.locationiq.com/v1/reverse.php?key=pk.ea0af28dc37b3820253c8f09417fb92a&lat=" +
+       "https://us1.locationiq.com/v1/reverse.php?key=" +
+         process.env.locationIqAPIkey +
+         "&lat=" +
          req.body.latitude +
          "&lon=" +
          req.body.longitude +
-         "&format=json&polygon_geojson=1"
+         "&format=json"
      )
      .then(function (response) {
-       console.log(response);
        if (response.data) {
-         regionRef
-           .child(response.data.address.state)
-           .set({
-             geojson: response.data.geojson,
-           })
-           .then(res.status(200).json(response.data.address.state))
-           .catch((err) => res.status(400).json("The post failed: " + err));
+         // save the name and the geojson of it
+        var id = ""
+         if (response.data.address.city) {
+          id = response.data.address.city
+         } else {
+           id = response.data.address.state
+         }
+           regionRef
+             .child(id)
+             .set({
+               latitude: response.data.lat,
+               longitude: response.data.lon,
+             })
+             .then(res.status(200).json(id))
+             .catch((err) => res.status(400).json("The post failed: " + err));
        } else {
          res.status(400).json("Can not find a state for this coordinates");
        }
      })
      .catch((err) => res.status(400).json("The post failed: " + err));
+});
+
+// add the regions
+app.get("/region", (req, res) => {
+  regionRef.once("value", (snapshot) => {
+    if (snapshot.exists()) {
+      res.status(200).json(snapshot.val());
+    }
+  },
+    (errorObject) => {
+      res.status(400).json("The read failed: " + errorObject.name);
+    });
 });
 
 // read user

@@ -39,11 +39,14 @@ export default function ChangePassword() {
   //use the style
   const classes = useStyles();
 
+  // load the user_id from the localstore to check the signin status
+  const user_id = window.localStorage.getItem("ID");
+
   //set the states of the function
   const [state, setState] = useState({
     current_password: "",
     new_password: "",
-    confirmPassword: ""
+    confirmPassword: "",
   });
   const [error, SetError] = useState("");
 
@@ -51,8 +54,8 @@ export default function ChangePassword() {
   const handleChange = (event) => {
     setState({ ...state, [event.target.name]: event.target.value });
   };
-    
-    const handleConfirmPasswordChange = (e) => {
+
+  const handleConfirmPasswordChange = (e) => {
     var errorText = "";
     if (e.target.value !== state.new_password) {
       errorText = "Passwords are not matched";
@@ -64,7 +67,6 @@ export default function ChangePassword() {
     });
   };
 
-
   // handel the submit of data
   const submit = async (e) => {
     e.preventDefault(); // prevent reload of the page after submit
@@ -73,6 +75,7 @@ export default function ChangePassword() {
     var data = {
       current_password: state.current_password,
       new_password: state.new_password,
+      ID: user_id,
     };
     try {
       //send the data to signin
