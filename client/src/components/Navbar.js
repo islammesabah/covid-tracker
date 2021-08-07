@@ -9,6 +9,7 @@ import Menu from "@material-ui/core/Menu";
 import Dialog from "@material-ui/core/Dialog";
 import UpdateUserData from "./UpdateUserData";
 import ChangePassword from "./ChangePassword";
+import ColorCode from './ColorInfo'
 const axios = require("axios");
 
 // css style of elements
@@ -38,7 +39,6 @@ const useStyles = makeStyles((theme) => ({
     fontSize: 16,
     display: 'block',
     width: "200px",
-    // margin:'auto'
   },
 }));
 
@@ -61,6 +61,7 @@ export default function NavBar() {
   const [update, setUpdate] = React.useState(false);
   const [changePassword, setChangePassword] = React.useState(false);
   const [openDialog, setOpenDialog] = React.useState(false);
+  const [colorCode, setColorCode] = React.useState(false);
 
   // ancher of the main menu
   const [anchorEl, setAnchorEl] = React.useState(null);
@@ -154,6 +155,16 @@ export default function NavBar() {
           </MenuItem>
           <MenuItem
             onClick={() => {
+              setColorCode(true);
+              handleClose();
+              setOpenDialog(true);
+            }}
+            color="primary"
+          >
+            Color Information
+          </MenuItem>
+          <MenuItem
+            onClick={() => {
               setChangePassword(true);
               handleClose();
               setOpenDialog(true);
@@ -179,6 +190,7 @@ export default function NavBar() {
         >
           {update && <UpdateUserData />}
           {changePassword && <ChangePassword />}
+          {colorCode && <ColorCode/>}
         </Dialog>
       </AppBar>
     </div>

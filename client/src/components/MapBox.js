@@ -1,20 +1,20 @@
-import * as React from 'react';
+import * as React from "react";
 import { useState, useEffect, useMemo } from "react";
-import 'mapbox-gl/dist/mapbox-gl.css';
+import "mapbox-gl/dist/mapbox-gl.css";
 import ReactMapGL, { Marker, Source, Layer } from "react-map-gl";
 import { CircularProgress, Typography } from "@material-ui/core";
 import { Room } from "@material-ui/icons";
-import FiberManualRecordRoundedIcon from '@material-ui/icons/FiberManualRecordRounded';
+import FiberManualRecordRoundedIcon from "@material-ui/icons/FiberManualRecordRounded";
 import firebase from "firebase/app";
 import "firebase/database";
 import { makeStyles } from "@material-ui/core/styles";
 const axios = require("axios");
 
-//firebae configuration 
+//firebae configuration
 const config = {
   apiKey: "AIzaSyAg8JSSERH3O3hF2yGrlqlJHwA4aUxhgW0",
   authDomain: "covid-tracker-2530c.firebaseapp.com",
-  databaseURL: "https://covid-tracker-2530c-default-rtdb.firebaseio.com"
+  databaseURL: "https://covid-tracker-2530c-default-rtdb.firebaseio.com",
 };
 
 // initiate the firebase app
@@ -24,13 +24,21 @@ firebase.initializeApp(config);
 const databaseref = firebase.database();
 const locationRef = databaseref.ref("/locations");
 
-// arrow function to get 
+// arrow function to get color of the points
 const colorOfDots = (user) => {
-  if (user.pcr_result === "Positive") return "red";
-  if (user.tempreature > 39) return "magenta";
+  if (user.pcr_result === "Positive") return "orange";
+  if (user.temperature > 39) return "yellow";
   return "green";
 };
 
+// check if the point will affect the danger zones
+const considerForBadRegion = (user) => {
+  if (user.pcr_result === "Positive") return true;
+  if (user.temperature > 39) return true;
+  return 0;
+};
+
+// danger zones style
 const layerStyle = {
   id: "point",
   type: "circle",
@@ -38,7 +46,7 @@ const layerStyle = {
     "circle-radius": {
       base: 50,
       stops: [
-        [0, 10],
+        [0, 10], /// these values for change the radius of point in differebt zoom values
         [4, 15],
         [6, 30],
         [8, 80],
@@ -50,25 +58,28 @@ const layerStyle = {
   },
 };
 
+// css style of elements
 const useStyles = makeStyles((theme) => ({
   root: {
     width: "100vw",
     height: "85vh",
-    display: 'grid'
+    display: "grid",
   },
   loadingBar: {
-    placeSelf: 'center'
+    placeSelf: "center",
   },
   error: {
     color: "red",
     width: "75vw",
     margin: "auto",
-    textAlign: "center"
+    textAlign: "center",
   },
 }));
 
-const THRESHOULD_REGIONS = 3;
-const START_ZOOM = 10;
+// global variables
+const THRESHOULD_REGIONS = 3; // the city will be marked with red if it has this number of affected people
+const START_ZOOM = 14;
+
 function MapBox() {
   //use the style
   const classes = useStyles();
@@ -135,13 +146,10 @@ function MapBox() {
                         loc["region"] = response.data;
                         axios
                           .post("/location", loc)
-                          .then(function (response) {
-                          })
-                          .catch(function (error) {
-                          });
+                          .then(function (response) {})
+                          .catch(function (error) {});
                       })
-                      .catch(function (error) {
-                      });
+                      .catch(function (error) {});
                   } catch (error) {
                     setError(
                       "We need to access your location to track your current location, \n your data will not be available online without your agreement"
@@ -158,7 +166,7 @@ function MapBox() {
           );
         },
         { enableHighAccuracy: true }
-      )
+      );
     } else {
       setError(
         "We need to access your location to track your current location, your data will not be available online without your agreement"
@@ -173,7 +181,8 @@ function MapBox() {
           var localRegions = {};
           Object.keys(data).map((key) => {
             data[key]["color"] = colorOfDots(data[key]);
-            if (data[key].region) {
+            // check how many patient in the city
+            if (data[key].region && considerForBadRegion(data[key])) {
               if (!localRegions[data[key].region]) {
                 localRegions[data[key].region] = {
                   points: 1,
@@ -186,11 +195,13 @@ function MapBox() {
             }
             return null;
           });
+          // delete the unneeded cities
           Object.keys(localRegions).map((region) => {
             if (localRegions[region].points < parseInt(THRESHOULD_REGIONS))
               delete localRegions[region];
             return null;
           });
+          // get cities coordinates
           axios.get("/region").then((res) => {
             const data = res.data;
             const curData = {
@@ -219,6 +230,7 @@ function MapBox() {
     }
   }, [user_id]);
 
+  // marker for the patients
   const markers = useMemo(
     () =>
       Object.keys(users).map((key) => (

@@ -16,10 +16,6 @@ const useStyles = makeStyles((theme) => ({
     flexDirection: "column",
     alignItems: "center",
   },
-  avatar: {
-    margin: theme.spacing(1),
-    backgroundColor: "#2B872B",
-  },
   form: {
     width: "100%",
     marginTop: theme.spacing(3),
@@ -55,6 +51,7 @@ export default function ChangePassword() {
     setState({ ...state, [event.target.name]: event.target.value });
   };
 
+  // handel if the two given passwords are not equal
   const handleConfirmPasswordChange = (e) => {
     var errorText = "";
     if (e.target.value !== state.new_password) {

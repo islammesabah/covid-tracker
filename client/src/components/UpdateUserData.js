@@ -90,7 +90,9 @@ export default function UpdateUserData() {
   const [pcr_result, setPcrResult] = useState("");
   const [vacciene_type, setVaccieneType] = useState("");
   const [error, SetError] = useState("");
-  const [temperature, SetTemperature] = useState("");
+  const [temp, SetInitTemp] = useState(37);
+  var temperature = 37;
+  const [dataLoaded, SetDataLoaded] = useState(false);
 
 
   // these arrow functions to handel the change in the input fields
@@ -98,7 +100,7 @@ export default function UpdateUserData() {
     setState({ ...state, [event.target.name]: event.target.value });
   };
   const setTemperature = (temp) => {
-    SetTemperature(temp);
+    temperature = temp;
   };
   const handleVaccieneTypeChange = (event) => {
     setVaccieneType(event.target.value);
@@ -107,12 +109,13 @@ export default function UpdateUserData() {
     setPcrResult(event.target.value);
   };
   const handleVaccieneChange = (event) => {
-    setVacciene(event.target.checked);
+     setVacciene(event.target.checked);
   };
   const handleLocationChange = (event) => {
     setLocation(event.target.checked);
   };
 
+  // get user data to render it at the begaining
   useEffect(() => {
     if (user_id !== null) {
       axios.get("/user?ID=" + user_id).then((res) => {
@@ -130,7 +133,8 @@ export default function UpdateUserData() {
         setVaccieneDate(res.data.vacciene_date);
         setPcrResult(res.data.pcr_result);
         setVaccieneType(res.data.vacciene_type);
-        SetTemperature(parseInt(res.data.temperature));
+        SetInitTemp(parseInt(res.data.temperature));
+        SetDataLoaded(true);
       });
     }
   }, [user_id]);
@@ -175,269 +179,274 @@ export default function UpdateUserData() {
 
   // render output
   return (
-    <Container component="main" maxWidth="xs">
-      <CssBaseline />
-      <div className={classes.paper}>
-        <Typography component="h1" variant="h5">
-          Update Your Data
-        </Typography>
-        <form className={classes.form} onSubmit={submit}>
-          <Grid container spacing={1}>
-            <Grid item xs={12}>
-              <Typography component="h1" variant="h6">
-                Personal Information
-              </Typography>
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                variant="outlined"
-                margin="normal"
-                required
-                id="first_name"
-                value={state.first_name}
-                label="First Name"
-                name="first_name"
-                onChange={handleChange}
-                fullWidth
-                autoFocus
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                variant="outlined"
-                margin="normal"
-                required
-                id="last_name"
-                label="Last Name"
-                name="last_name"
-                value={state.last_name}
-                onChange={handleChange}
-                fullWidth
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                variant="outlined"
-                margin="normal"
-                required
-                fullWidth
-                id="email"
-                value={state.email}
-                label="Email Address"
-                name="email"
-                type="email"
-                onChange={handleChange}
-                autoComplete="email"
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <FormControl component="fieldset">
-                <Grid container spacing={5} alignItems="center">
-                  <Grid item>
-                    <Typography id="input-slider" gutterBottom>
-                      Gender:
-                    </Typography>
-                  </Grid>
-                  <Grid item xs>
-                    <RadioGroup
-                      aria-label="types"
-                      name="type"
-                      value={state.gender}
-                      onChange={handleChange}
-                    >
-                      <Grid container spacing={2} alignItems="center">
-                        <Grid item>
-                          <FormControlLabel
-                            value="male"
-                            control={<Radio color="primary" />}
-                            label="Male"
-                          />
-                        </Grid>
-                        <Grid item>
-                          <FormControlLabel
-                            value="female"
-                            control={<Radio color="primary" />}
-                            label="Female"
-                          />
-                        </Grid>
-                      </Grid>
-                    </RadioGroup>
-                  </Grid>
+    <div>
+      {dataLoaded && (
+        <Container component="main" maxWidth="xs">
+          <CssBaseline />
+          <div className={classes.paper}>
+            <Typography component="h1" variant="h5">
+              Update Your Data
+            </Typography>
+            <form className={classes.form} onSubmit={submit}>
+              <Grid container spacing={1}>
+                <Grid item xs={12}>
+                  <Typography component="h1" variant="h6">
+                    Personal Information
+                  </Typography>
                 </Grid>
-              </FormControl>
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                variant="outlined"
-                margin="normal"
-                name="age"
-                autoComplete="number"
-                required
-                fullWidth
-                value={state.age}
-                label="Age"
-                type="number"
-                onChange={handleChange}
-                inputProps={{
-                  min: 0,
-                  max: 150,
-                  type: "number",
-                  "aria-labelledby": "input-slider",
-                }}
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <MuiPhoneNumber
-                name="phone_number"
-                variant="outlined"
-                label="Phone Number"
-                value={phone_number}
-                data-cy="user-phone"
-                onChange={setPhoneNumber}
-                defaultCountry={"us"}
-                fullWidth
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <Divider />
-            </Grid>
-            <Grid item xs={12}>
-              <Typography component="h1" variant="h6">
-                Health Status
-              </Typography>
-            </Grid>
-            <Grid item xs={12} sm={4}>
-              <Typography id="discrete-slider-always" gutterBottom>
-                Temperature
-              </Typography>
-            </Grid>
-            <Grid item xs={12} sm={8}>
-              <Slider
-                defaultValue={37}
-                value={temperature}
-                name="temperature"
-                getAriaValueText={setTemperature}
-                aria-labelledby="discrete-slider-always"
-                step={1}
-                min={32}
-                max={42}
-                marks={marks}
-                valueLabelDisplay="on"
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <FormControl fullWidth className={classes.formControl}>
-                <InputLabel id="demo-simple-select-label">
-                  PCR Result
-                </InputLabel>
-                <Select
-                  labelId="demo-simple-select-label"
-                  id="demo-simple-select"
-                  placeholder="Not Taken"
-                  value={pcr_result}
-                  onChange={handlePcrResultChange}
-                  name="pcr_result"
-                >
-                  <MenuItem value="Not Taken">Not Taken</MenuItem>
-                  <MenuItem value="Positive">Positive</MenuItem>
-                  <MenuItem value="Negative">Negative</MenuItem>
-                </Select>
-              </FormControl>
-            </Grid>
-            <Grid item xs={12} sm={9}>
-              <Typography id="discrete-slider-always" gutterBottom>
-                Did You take the Vacciene?
-              </Typography>
-            </Grid>
-            <Grid item xs={12} sm={3}>
-              <Switch
-                checked={vacciene}
-                onChange={handleVaccieneChange}
-                color="primary"
-                name="vacciene"
-                inputProps={{ "aria-label": "primary checkbox" }}
-              />
-            </Grid>
-            {vacciene && (
-              <>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    variant="outlined"
+                    margin="normal"
+                    required
+                    id="first_name"
+                    value={state.first_name}
+                    label="First Name"
+                    name="first_name"
+                    onChange={handleChange}
+                    fullWidth
+                    autoFocus
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    variant="outlined"
+                    margin="normal"
+                    required
+                    id="last_name"
+                    label="Last Name"
+                    name="last_name"
+                    value={state.last_name}
+                    onChange={handleChange}
+                    fullWidth
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <TextField
+                    variant="outlined"
+                    margin="normal"
+                    required
+                    fullWidth
+                    id="email"
+                    value={state.email}
+                    label="Email Address"
+                    name="email"
+                    type="email"
+                    onChange={handleChange}
+                    autoComplete="email"
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <FormControl component="fieldset">
+                    <Grid container spacing={5} alignItems="center">
+                      <Grid item>
+                        <Typography id="input-slider" gutterBottom>
+                          Gender:
+                        </Typography>
+                      </Grid>
+                      <Grid item xs>
+                        <RadioGroup
+                          aria-label="types"
+                          name="type"
+                          value={state.gender}
+                          onChange={handleChange}
+                        >
+                          <Grid container spacing={2} alignItems="center">
+                            <Grid item>
+                              <FormControlLabel
+                                value="male"
+                                control={<Radio color="primary" />}
+                                label="Male"
+                              />
+                            </Grid>
+                            <Grid item>
+                              <FormControlLabel
+                                value="female"
+                                control={<Radio color="primary" />}
+                                label="Female"
+                              />
+                            </Grid>
+                          </Grid>
+                        </RadioGroup>
+                      </Grid>
+                    </Grid>
+                  </FormControl>
+                </Grid>
+                <Grid item xs={12}>
+                  <TextField
+                    variant="outlined"
+                    margin="normal"
+                    name="age"
+                    autoComplete="number"
+                    required
+                    fullWidth
+                    value={state.age}
+                    label="Age"
+                    type="number"
+                    onChange={handleChange}
+                    inputProps={{
+                      min: 0,
+                      max: 150,
+                      type: "number",
+                      "aria-labelledby": "input-slider",
+                    }}
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <MuiPhoneNumber
+                    name="phone_number"
+                    variant="outlined"
+                    label="Phone Number"
+                    value={phone_number}
+                    data-cy="user-phone"
+                    onChange={setPhoneNumber}
+                    defaultCountry={"us"}
+                    fullWidth
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <Divider />
+                </Grid>
+                <Grid item xs={12}>
+                  <Typography component="h1" variant="h6">
+                    Health Status
+                  </Typography>
+                </Grid>
+                <Grid item xs={12} sm={4}>
+                  <Typography id="discrete-slider-always" gutterBottom>
+                    Temperature
+                  </Typography>
+                </Grid>
+                <Grid item xs={12} sm={8}>
+                  <Slider
+                    defaultValue={temp}
+                    name="temperature"
+                    getAriaValueText={setTemperature}
+                    aria-labelledby="discrete-slider-always"
+                    step={1}
+                    min={32}
+                    max={42}
+                    marks={marks}
+                    valueLabelDisplay="on"
+                  />
+                </Grid>
                 <Grid item xs={12}>
                   <FormControl fullWidth className={classes.formControl}>
                     <InputLabel id="demo-simple-select-label">
-                      Vacciene Type
+                      PCR Result
                     </InputLabel>
                     <Select
                       labelId="demo-simple-select-label"
                       id="demo-simple-select"
-                      name="vacciene_type"
-                      value={vacciene_type}
-                      onChange={handleVaccieneTypeChange}
+                      placeholder="Not Taken"
+                      value={pcr_result}
+                      onChange={handlePcrResultChange}
+                      name="pcr_result"
                     >
-                      <MenuItem value="Pfizer">Pfizer</MenuItem>
-                      <MenuItem value="AstraZeneca">AstraZeneca</MenuItem>
-                      <MenuItem value="China Vaccine">China Vaccine</MenuItem>
+                      <MenuItem value="Not Taken">Not Taken</MenuItem>
+                      <MenuItem value="Positive">Positive</MenuItem>
+                      <MenuItem value="Negative">Negative</MenuItem>
                     </Select>
                   </FormControl>
                 </Grid>
-                <Grid item xs={12}>
-                  <MuiPickersUtilsProvider utils={DateFnsUtils}>
-                    <KeyboardDatePicker
-                      disableToolbar
-                      format="MM/dd/yyyy"
-                      margin="normal"
-                      fullWidth
-                      id="date-picker-inline"
-                      label="Date picker inline"
-                      value={vacciene_date}
-                      name="vacciene_date"
-                      onChange={setVaccieneDate}
-                      KeyboardButtonProps={{
-                        "aria-label": "change date",
-                      }}
-                    />
-                  </MuiPickersUtilsProvider>
+                <Grid item xs={12} sm={9}>
+                  <Typography id="discrete-slider-always" gutterBottom>
+                    Did You take the Vacciene?
+                  </Typography>
                 </Grid>
-              </>
-            )}
-            <Grid item xs={12}>
-              <Divider />
-            </Grid>
-            <Grid item xs={12}>
-              <Typography component="h1" variant="h6">
-                Location Access
-              </Typography>
-            </Grid>
-            <Grid item xs={12} sm={9}>
-              <Typography id="discrete-slider-always" gutterBottom>
-                Track Your Location?
-              </Typography>
-            </Grid>
-            <Grid item xs={12} sm={3}>
-              <Switch
-                checked={location}
-                onChange={handleLocationChange}
+                <Grid item xs={12} sm={3}>
+                  <Switch
+                    checked={vacciene}
+                    onChange={handleVaccieneChange}
+                    color="primary"
+                    name="vacciene"
+                    inputProps={{ "aria-label": "primary checkbox" }}
+                  />
+                </Grid>
+                {vacciene && (
+                  <>
+                    <Grid item xs={12}>
+                      <FormControl fullWidth className={classes.formControl}>
+                        <InputLabel id="demo-simple-select-label">
+                          Vacciene Type
+                        </InputLabel>
+                        <Select
+                          labelId="demo-simple-select-label"
+                          id="demo-simple-select"
+                          name="vacciene_type"
+                          value={vacciene_type}
+                          onChange={handleVaccieneTypeChange}
+                        >
+                          <MenuItem value="Pfizer">Pfizer</MenuItem>
+                          <MenuItem value="AstraZeneca">AstraZeneca</MenuItem>
+                          <MenuItem value="China Vaccine">
+                            China Vaccine
+                          </MenuItem>
+                        </Select>
+                      </FormControl>
+                    </Grid>
+                    <Grid item xs={12}>
+                      <MuiPickersUtilsProvider utils={DateFnsUtils}>
+                        <KeyboardDatePicker
+                          disableToolbar
+                          format="MM/dd/yyyy"
+                          margin="normal"
+                          fullWidth
+                          id="date-picker-inline"
+                          label="Date picker inline"
+                          value={vacciene_date}
+                          name="vacciene_date"
+                          onChange={setVaccieneDate}
+                          KeyboardButtonProps={{
+                            "aria-label": "change date",
+                          }}
+                        />
+                      </MuiPickersUtilsProvider>
+                    </Grid>
+                  </>
+                )}
+                <Grid item xs={12}>
+                  <Divider />
+                </Grid>
+                <Grid item xs={12}>
+                  <Typography component="h1" variant="h6">
+                    Location Access
+                  </Typography>
+                </Grid>
+                <Grid item xs={12} sm={9}>
+                  <Typography id="discrete-slider-always" gutterBottom>
+                    Track Your Location?
+                  </Typography>
+                </Grid>
+                <Grid item xs={12} sm={3}>
+                  <Switch
+                    checked={location}
+                    onChange={handleLocationChange}
+                    color="primary"
+                    name="location"
+                    inputProps={{ "aria-label": "primary checkbox" }}
+                  />
+                </Grid>
+              </Grid>
+              {error !== "" && (
+                <Typography className={classes.error} variant="caption">
+                  {" "}
+                  * {error}
+                </Typography>
+              )}
+              <Button
+                type="submit"
+                fullWidth
+                variant="contained"
                 color="primary"
-                name="location"
-                inputProps={{ "aria-label": "primary checkbox" }}
-              />
-            </Grid>
-          </Grid>
-          {error !== "" && (
-            <Typography className={classes.error} variant="caption">
-              {" "}
-              * {error}
-            </Typography>
-          )}
-          <Button
-            type="submit"
-            fullWidth
-            variant="contained"
-            color="primary"
-            className={classes.submit}
-          >
-            Update
-          </Button>
-        </form>
-      </div>
-    </Container>
+                className={classes.submit}
+              >
+                Update
+              </Button>
+            </form>
+          </div>
+        </Container>
+      )}
+    </div>
   );
 }

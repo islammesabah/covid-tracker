@@ -88,11 +88,11 @@ server.post('/login', async (req, res) => {
           // validate the password
             const validate = await bcrypt.compare(
               req.body.password,
-              data[[Object.keys(data)[0]]].password
+              data[Object.keys(data)[0]].password
             );
         !validate && res.status(400).json("Wronge Email or Password");
         // return the user id
-            res.status(200).json(Object.keys(data)[0]);
+        if (validate) res.status(200).json(Object.keys(data)[0]);
         }else{
             res.status(400).json('Wronge Email or Password');
         }
@@ -153,8 +153,8 @@ server.post('/location', (req, res) => {
              locationRef
                .child(req.body.ID)
                .set({
-                 tempreature: snapshot.val().tempreature
-                   ? snapshot.val().tempreature
+                 temperature: snapshot.val().temperature
+                   ? snapshot.val().temperature
                    : 37,
                  pcr_result: snapshot.val().pcr_result
                    ? snapshot.val().pcr_result

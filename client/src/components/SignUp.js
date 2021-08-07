@@ -260,7 +260,7 @@ export default function SignUp() {
                   <Grid item xs>
                     <RadioGroup
                       aria-label="types"
-                      name="type"
+                      name="gender"
                       value={state.gender}
                       onChange={handleChange}
                     >
