@@ -8,7 +8,12 @@ import FiberManualRecordRoundedIcon from "@material-ui/icons/FiberManualRecordRo
 import firebase from "firebase/app";
 import "firebase/database";
 import { makeStyles } from "@material-ui/core/styles";
+import mapboxgl from "mapbox-gl";
+import MapboxWorker from "mapbox-gl/dist/mapbox-gl-csp-worker";
 const axios = require("axios");
+
+// assign workerClass
+mapboxgl.workerClass = MapboxWorker;
 
 //firebae configuration
 const config = {
@@ -164,8 +169,7 @@ function MapBox() {
           setError(
             "We need to access your location to track your current location, \n your data will not be available online without your agreement"
           );
-        },
-        { enableHighAccuracy: true }
+        }
       );
     } else {
       setError(
@@ -174,57 +178,68 @@ function MapBox() {
     }
     // call firebase realtime function to update the realtime location of other users
     try {
-      locationRef.on("value", (snapshot) => {
-        if (snapshot.exists()) {
-          const data = snapshot.val();
-          delete data[user_id];
-          var localRegions = {};
-          Object.keys(data).map((key) => {
-            data[key]["color"] = colorOfDots(data[key]);
-            // check how many patient in the city
-            if (data[key].region && considerForBadRegion(data[key])) {
-              if (!localRegions[data[key].region]) {
-                localRegions[data[key].region] = {
-                  points: 1,
-                };
-              } else {
-                localRegions[data[key].region] = {
-                  points: localRegions[data[key].region].points + 1,
-                };
+      locationRef.on(
+        "value",
+        (snapshot) => {
+          if (snapshot.exists()) {
+            const data = snapshot.val();
+            delete data[user_id];
+            var localRegions = {};
+            Object.keys(data).map((key) => {
+              data[key]["color"] = colorOfDots(data[key]);
+              // check how many patient in the city
+              if (data[key].region && considerForBadRegion(data[key])) {
+                if (!localRegions[data[key].region]) {
+                  localRegions[data[key].region] = {
+                    points: 1,
+                  };
+                } else {
+                  localRegions[data[key].region] = {
+                    points: localRegions[data[key].region].points + 1,
+                  };
+                }
               }
-            }
-            return null;
-          });
-          // delete the unneeded cities
-          Object.keys(localRegions).map((region) => {
-            if (localRegions[region].points < parseInt(THRESHOULD_REGIONS))
-              delete localRegions[region];
-            return null;
-          });
-          // get cities coordinates
-          axios.get("/region").then((res) => {
-            const data = res.data;
-            const curData = {
-              type: "FeatureCollection",
-              features: Object.keys(localRegions).map((region) => {
-                return {
-                  type: "Feature",
-                  geometry: {
-                    type: "Point",
-                    coordinates: [
-                      data[region].longitude,
-                      data[region].latitude,
-                    ],
-                  },
+              return null;
+            });
+            // delete the unneeded cities
+            Object.keys(localRegions).map((region) => {
+              if (localRegions[region].points < parseInt(THRESHOULD_REGIONS))
+                delete localRegions[region];
+              return null;
+            });
+            // get cities coordinates
+            axios.get("/region").then(
+              (res) => {
+                const data = res.data;
+                const curData = {
+                  type: "FeatureCollection",
+                  features: Object.keys(localRegions).map((region) => {
+                    return {
+                      type: "Feature",
+                      geometry: {
+                        type: "Point",
+                        coordinates: [
+                          data[region].longitude,
+                          data[region].latitude,
+                        ],
+                      },
+                    };
+                  }),
                 };
-              }),
-            };
-            setRegions(curData);
-            setDataLoaded(true);
-          });
-          setUsers(data);
+                setRegions(curData);
+                setDataLoaded(true);
+              },
+              (err) => {
+                setError("we can not load the data please reload the page.");
+              }
+            );
+            setUsers(data);
+          }
+        },
+        (err) => {
+          setError("we can not load the data please reload the page.");
         }
-      });
+      );
     } catch {
       setError("we can not load the data please reload the page.");
     }

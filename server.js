@@ -3,6 +3,7 @@ const cors = require('cors');
 const admin = require("firebase-admin");
 const bcrypt = require("bcrypt");
 const axios = require("axios");
+const path = require("path");
 
 // access .env file
 require('dotenv').config();
@@ -240,7 +241,10 @@ server.get('/user', (req, res) => {
 });
 
 if (process.env.NODE_ENV == 'production') {
-  server.use(express.static("client/build"));
+  server.use(express.static(path.resolve(__dirname, "./client/build")));
+  server.get("*", function (request, response) {
+    response.sendFile(path.resolve(__dirname, "./client/build", "index.html"));
+  });
 }
 
 // start the server
