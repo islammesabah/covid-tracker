@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
+  "https_only": true,
   "scripts": {
     "test": "nodemon server.js",
     "build":"cd client && npm run build",
