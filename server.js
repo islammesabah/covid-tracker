@@ -8,12 +8,12 @@ const axios = require("axios");
 require('dotenv').config();
 
 //start express and set the uri port
-const app = express();
+const server = express();
 const port = process.env.PORT || 5000;
 
 // use cors and set express response to json formate
-app.use(cors());
-app.use(express.json());
+server.use(cors());
+server.use(express.json());
 
 // initialize firebase database
 var serviceAccount = require(process.env.servicePath);
@@ -29,7 +29,7 @@ const locationRef = database.ref('/locations');
 const regionRef = database.ref('/region');
 
 // post request to register user
-app.post('/user', async (req, res) => {
+server.post('/user', async (req, res) => {
   try {
       // check if the email already exist
       userRef
@@ -63,7 +63,7 @@ app.post('/user', async (req, res) => {
 });
 
 //update user data
-app.post("/updateuser", async (req, res) => {
+server.post("/updateuser", async (req, res) => {
   try {
     var data = req.body;
     data["ID"] = req.body.ID;
@@ -79,7 +79,7 @@ app.post("/updateuser", async (req, res) => {
 });
 
 // // post request to login
-app.post('/login', async (req, res) => {
+server.post('/login', async (req, res) => {
   // access the given email
     userRef.orderByChild('email').equalTo(req.body.email).once('value', async (snapshot) => {
       var data = snapshot.val()
@@ -102,7 +102,7 @@ app.post('/login', async (req, res) => {
 });
 
 //change current password
-app.post("/changepassword", async (req, res) => {
+server.post("/changepassword", async (req, res) => {
     userRef
       .child(req.body.ID)
       .once(
@@ -142,7 +142,7 @@ app.post("/changepassword", async (req, res) => {
 });
 
 // set location
-app.post('/location', (req, res) => {
+server.post('/location', (req, res) => {
   // get the user information to save the tempreature and pcr_result
   // to be aple to filter the content when showing the map
   // here we chose to save the data again on the dataset 
@@ -173,7 +173,7 @@ app.post('/location', (req, res) => {
 });
 
 // add the regions
-app.post("/region", (req, res) => {
+server.post("/region", (req, res) => {
   // get the regions from its cordinates using locationIq
    axios
      .post(
@@ -210,7 +210,7 @@ app.post("/region", (req, res) => {
 });
 
 // add the regions
-app.get("/region", (req, res) => {
+server.get("/region", (req, res) => {
   regionRef.once("value", (snapshot) => {
     if (snapshot.exists()) {
       res.status(200).json(snapshot.val());
@@ -222,7 +222,7 @@ app.get("/region", (req, res) => {
 });
 
 // read user
-app.get('/user', (req, res) => {
+server.get('/user', (req, res) => {
     userRef.child(req.query.ID).once(
       "value",
       (snapshot) => {
@@ -239,7 +239,7 @@ app.get('/user', (req, res) => {
     );
 });
 
-// start the app
-app.listen(port,()=>{
-    console.log(`App is listening to port ${port}`);
+// start the server
+server.listen(port,()=>{
+    console.log(`Server is listening to port ${port}`);
 });
