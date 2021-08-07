@@ -240,7 +240,7 @@ server.get('/user', (req, res) => {
 });
 
 if (process.env.NODE_ENV == 'production') {
-  app.use(express.static('client/build'))
+  server.use(express.static("client/build"));
 }
 
 // start the server
