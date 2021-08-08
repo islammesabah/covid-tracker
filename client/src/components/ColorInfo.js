@@ -19,8 +19,16 @@ const useStyles = makeStyles((theme) => ({
     paddingBottom: "20px",
   },
   form: {
-    width: "50%",
     margin: "auto",
+  },
+  colors: {
+    width: "100%",
+    marginLeft: "auto",
+    marginRight: "auto",
+    float: "left",
+    border: "1",
+     display: 'flex',
+  justifyContent: 'center'
   },
 }));
 
@@ -37,60 +45,71 @@ export default function ChangePassword() {
           Color Code Information
         </Typography>
         <Grid container>
-          <Grid item xs={9} sm={3}>
+          <div class={classes.colors}>
             <FiberManualRecordIcon
               style={{
-                marginLeft: "25%",
+                float: "left",
+                marginRight: 10,
                 fontSize: 30,
                 color: "slateblue",
               }}
             />
-          </Grid>
-          <Grid item xs={9} sm={9}>
             <Typography id="discrete-slider-always" gutterBottom>
               Your Location ;)
             </Typography>
-          </Grid>
-          <Grid item xs={9} sm={3}>
+          </div>
+          <div class={classes.colors}>
             <FiberManualRecordIcon
-              style={{ marginLeft: "25%", fontSize: 30, color: "orange" }}
+              style={{
+                float: "left",
+                marginRight: 10,
+                fontSize: 30,
+                color: "orange",
+              }}
             />
-          </Grid>
-          <Grid item xs={9} sm={9}>
             <Typography id="discrete-slider-always" gutterBottom>
               Positive PCR Result
             </Typography>
-          </Grid>
-          <Grid item xs={9} sm={3}>
+          </div>
+          <div class={classes.colors}>
             <FiberManualRecordIcon
-              style={{ marginLeft: "25%", fontSize: 30, color: "yellow" }}
+              style={{
+                float: "left",
+                marginRight: 10,
+                fontSize: 30,
+                color: "yellow",
+              }}
             />
-          </Grid>
-          <Grid item xs={9} sm={9}>
             <Typography id="discrete-slider-always" gutterBottom>
               Temperature greater than 39
             </Typography>
-          </Grid>
-          <Grid item xs={9} sm={3}>
+          </div>
+          <div class={classes.colors}>
             <FiberManualRecordIcon
-              style={{ marginLeft: "25%", fontSize: 30, color: "green" }}
+              style={{
+                float: "left",
+                marginRight: 10,
+                fontSize: 30,
+                color: "green",
+              }}
             />
-          </Grid>
-          <Grid item xs={9} sm={9}>
             <Typography id="discrete-slider-always" gutterBottom>
               Normal persons
             </Typography>
-          </Grid>
-          <Grid item xs={9} sm={3}>
+          </div>
+          <div class={classes.colors}>
             <FiberManualRecordIcon
-              style={{ marginLeft: "25%", fontSize: 30, color: "red" }}
+              style={{
+                float: "left",
+                marginRight: 10,
+                fontSize: 30,
+                color: "red",
+              }}
             />
-          </Grid>
-          <Grid item xs={9} sm={9}>
             <Typography id="discrete-slider-always" gutterBottom>
               Danger Zone
             </Typography>
-          </Grid>
+          </div>
         </Grid>
       </div>
     </Container>

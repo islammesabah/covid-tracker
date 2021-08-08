@@ -110,6 +110,19 @@ export default function NavBar() {
           >
             Covid Tracker
           </Typography>
+          {(showNavButtons() === 0) &&(
+              <Button
+              className={classes.button}
+              variant="outlined"
+              color="inherit"
+              onClick={() => {
+                setColorCode(true);
+                setOpenDialog(true);
+              }}
+              >
+                Color Code
+              </Button>
+            )}
           {(showNavButtons() === 0 || showNavButtons() === 2) &&
             user_id === null && (
               <Button
@@ -156,16 +169,6 @@ export default function NavBar() {
           </MenuItem>
           <MenuItem
             onClick={() => {
-              setColorCode(true);
-              handleClose();
-              setOpenDialog(true);
-            }}
-            color="primary"
-          >
-            Color Information
-          </MenuItem>
-          <MenuItem
-            onClick={() => {
               setChangePassword(true);
               handleClose();
               setOpenDialog(true);
@@ -191,7 +194,7 @@ export default function NavBar() {
         >
           {update && <UpdateUserData />}
           {changePassword && <ChangePassword />}
-          {colorCode && <ColorCode/>}
+          {colorCode && <ColorCode />}
         </Dialog>
       </AppBar>
     </div>
