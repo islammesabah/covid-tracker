@@ -84,6 +84,8 @@ const useStyles = makeStyles((theme) => ({
 // global variables
 const THRESHOULD_REGIONS = 3; // the city will be marked with red if it has this number of affected people
 const START_ZOOM = 14;
+const CURRENT_USER_SIZE = 7;
+const USERS_SIZE = 2;
 
 function MapBox() {
   //use the style
@@ -247,35 +249,48 @@ function MapBox() {
 
   // marker for the patients
   const markers = useMemo(
-    () =>
-      Object.keys(users).map((key) => (
-        <Marker
-          key={key}
-          latitude={users[key].latitude}
-          longitude={users[key].longitude}
-          offsetLeft={-viewport.zoom}
-          offsetTop={-viewport.zoom * 2}
-        >
-          <FiberManualRecordRoundedIcon
-            style={{ fontSize: viewport.zoom * 2, color: users[key].color }}
-          />
-        </Marker>
-      )),
+    () => {
+      if (viewport.zoom > 6) {
+        return Object.keys(users).map((key) => (
+          <Marker
+            key={key}
+            latitude={users[key].latitude}
+            longitude={users[key].longitude}
+            offsetLeft={(-viewport.zoom * USERS_SIZE) / 2}
+            offsetTop={-viewport.zoom * USERS_SIZE}
+          >
+            <FiberManualRecordRoundedIcon
+              style={{
+                fontSize: viewport.zoom * USERS_SIZE,
+                color: users[key].color,
+              }}
+            />
+          </Marker>
+        ));
+      } 
+    },
     [users, viewport.zoom]
   );
 
   // render the user location if it changed
   const currentUserMarker = useMemo(() => {
-    return (
-      <Marker
-        latitude={userLocation.latitude}
-        longitude={userLocation.longitude}
-        offsetLeft={-viewport.zoom * 3.5}
-        offsetTop={-viewport.zoom * 7}
-      >
-        <Room style={{ fontSize: viewport.zoom * 7, color: "slateblue" }} />
-      </Marker>
+    if (viewport.zoom > 2) {
+      return (
+        <Marker
+          latitude={userLocation.latitude}
+          longitude={userLocation.longitude}
+          offsetLeft={-viewport.zoom * CURRENT_USER_SIZE / 2}
+          offsetTop={-viewport.zoom * CURRENT_USER_SIZE}
+        >
+          <Room
+            style={{
+              fontSize: viewport.zoom * CURRENT_USER_SIZE,
+              color: "slateblue",
+            }}
+          />
+        </Marker>
     );
+  }
   }, [userLocation, viewport.zoom]);
 
   // render output
